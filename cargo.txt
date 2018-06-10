@@ -1,0 +1,10 @@
+[package]
+name = "v8worker2"
+version = "0.1.0"
+authors = ["Matias Insaurralde <matias@insaurral.de>"]
+
+[dependencies]
+
+[lib]
+name = "v8worker2"
+crate-type = ["dylib"]
