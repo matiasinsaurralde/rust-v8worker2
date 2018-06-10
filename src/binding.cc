@@ -295,7 +295,6 @@ int worker_send_bytes(worker* w, void* data, size_t len) {
 }
 
 void v8_init() {
-  printf("v8_init()\n");
   Platform* platform = platform::CreateDefaultPlatform();
   V8::InitializePlatform(platform);
   V8::Initialize();

@@ -6,6 +6,6 @@ authors = ["Matias Insaurralde <matias@insaurral.de>"]
 [dependencies]
 libc = "0.2"
 
-[lib]
-name = "v8worker2"
-crate-type = ["rlib"]
+[build-dependencies]
+cc = "1"
+

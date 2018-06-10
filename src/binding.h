@@ -52,7 +52,7 @@ int worker_send_bytes(worker* w, void* data, size_t len);
 void worker_dispose(worker* w);
 void worker_terminate_execution(worker* w);
 
-void recvCb(void*, int, int);
+buf recvCb(void*, int, int);
 
 #ifdef __cplusplus
 }  // extern "C"
