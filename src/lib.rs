@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
-mod v8worker;
+pub mod v8worker;
 
 extern crate libc;
 
