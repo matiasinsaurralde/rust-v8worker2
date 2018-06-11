@@ -3,8 +3,6 @@ use libc::size_t;
 use std::os::raw::{c_void};
 use std::str::Utf8Error;
 
-use std::sync::Mutex;
-
 use {
     worker_new, worker_load, worker_terminate_execution,
     worker_last_exception, worker_dispose, worker_send_bytes,
