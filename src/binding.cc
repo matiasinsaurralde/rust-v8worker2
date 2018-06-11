@@ -160,10 +160,7 @@ void worker_set_flags(int* argc, char** argv) {
 }
 
 const char* worker_last_exception(worker* w) {
-  printf("binding.cc: worker_last_exception %p\n", w);
-  const char* abc = "test";
-  // return w->last_exception.c_str();
-  return abc;
+  return w->last_exception.c_str();
 }
 
 int worker_load(worker* w, char* name_s, char* source_s) {
@@ -236,7 +233,6 @@ void Recv(const FunctionCallbackInfo<Value>& args) {
 
 // Called from JavaScript, routes message to golang.
 void Send(const FunctionCallbackInfo<Value>& args) {
-  printf("Send is called from V8\n");
   Isolate* isolate = args.GetIsolate();
   worker* w = static_cast<worker*>(isolate->GetData(0));
   assert(w->isolate == isolate);
@@ -256,22 +252,13 @@ void Send(const FunctionCallbackInfo<Value>& args) {
   int buflen = static_cast<int>(contents.ByteLength());
   
   
-  printf("calling recvcb\n");
   auto retbuf = recvCb(buf, buflen, w->table_index);
-  printf("after call\n");
-  if(retbuf.data) {
-    printf("retbuf.data IS NOT NULL\n");
-    printf("retbuf is\n");
-    printf("%s\n", retbuf.data);
-  }
-  /*
+  
   if (retbuf.data) {
     auto ab = ArrayBuffer::New(w->isolate, retbuf.data, retbuf.len,
                                ArrayBufferCreationMode::kInternalized);
     args.GetReturnValue().Set(handle_scope.Escape(ab));
   }
-  */
-  
 }
 
 // Called from golang. Must route message to javascript lang.
@@ -308,21 +295,12 @@ int worker_send_bytes(worker* w, void* data, size_t len) {
 }
 
 void v8_init() {
-  printf("v8_init\n");
   Platform* platform = platform::CreateDefaultPlatform();
   V8::InitializePlatform(platform);
   V8::Initialize();
-  printf("v8_init  returns\n");
 }
 
-
-// func recvCb(buf unsafe.Pointer, buflen C.int, index workerTableIndex) C.buf {
-/*buf recvCb(void* data, int x, int y) {
-  printf("recvb is called: x = %d, y = %d\n", x, y);
-}*/
-
 worker* worker_new(int table_index) {
-  printf("binding.cc: worker_new %d\n", table_index);
   worker* w = new (worker);
 
   Isolate::CreateParams create_params;
