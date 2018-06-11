@@ -1,11 +1,8 @@
-#[macro_use]
-extern crate lazy_static;
 pub mod v8worker;
 
 extern crate libc;
 
 use libc::size_t;
-// use std::ffi::CString;
 use std::mem;
 use std::os::raw::{c_char, c_void, c_int};
 
@@ -24,17 +21,17 @@ impl Clone for buf_s {
     fn clone(&self) -> Self { *self }
 }
 
-type recvCallbackFn = fn();
+type RecvCallbackFn = fn(*mut u8, i32, i32);
 
-pub fn defaultCb() {
-    println!("defaultCb is called!");
+pub fn default_recv_callback(_data: *mut u8, _length: i32, _index: i32) {
+    println!("default_recv_callback is called!");
 }
 
-pub fn newCb() {
-    println!("newCb is called!");
+pub fn new_recv_callback(_data: *mut u8, _length: i32, _index: i32) {
+    println!("new_recv_callback is called!");
 }
 
-static mut cb: recvCallbackFn = defaultCb;
+pub static mut CB: RecvCallbackFn = default_recv_callback;
 
 #[link(name = "binding")]
 extern {
@@ -52,8 +49,6 @@ extern {
      -> c_int;
     pub fn worker_dispose(w: *mut worker);
     pub fn worker_terminate_execution(w: *mut worker);
-    // pub fn recvCb(arg1: *mut ::std::os::raw::c_void,
-    //              arg2: c_int, arg3: c_int);
 
     pub fn worker_last_exception(w: *mut worker)
      -> *const c_char;
@@ -64,7 +59,7 @@ fn test_wrapper() {
     unsafe { v8_init() };
 
     unsafe {
-        cb = newCb
+        CB = new_recv_callback
     };
 
     let mut test_worker = v8worker::new();
@@ -72,18 +67,26 @@ fn test_wrapper() {
     let script_name = String::from("code.js");
     test_worker.load(script_name, code);
 
-    let code2 = String::from("V8Worker2.send(new ArrayBuffer(5))");
+    let code2 = String::from("V8Worker2.send(new ArrayBuffer(10))");
     let script_name2 = String::from("code2.js");
     test_worker.load(script_name2, code2);
-    test_worker.last_exception();
+    // test_worker.last_exception();
 }
 
 
 #[no_mangle]
-pub extern fn recvCb(buf: *mut c_void, len: c_int, index: c_int) -> buf_s {
-    unsafe{ cb() };
-    unsafe {
-    let out: buf_s = mem::uninitialized();
-    return out
+pub extern fn recvCb(buf: *mut c_void, _len: c_int, _index: c_int) -> buf_s {
+    let contents: *mut u8;
+    let length: i32;
+    let index: i32;
+    unsafe{
+        contents = mem::transmute(buf);
+        length = _len as i32;
+        index = _index as i32;
+
+        // Send data to the recv callback:
+        CB(contents, length, index);
+        let out: buf_s = mem::uninitialized();
+        out
     }
 }
