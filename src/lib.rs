@@ -21,13 +21,13 @@ impl Clone for buf_s {
     fn clone(&self) -> Self { *self }
 }
 
-type RecvCallbackFn = fn(*mut u8, i32, i32);
+type RecvCallbackFn = fn(&mut [u8], i32, i32);
 
-pub fn default_recv_callback(_data: *mut u8, _length: i32, _index: i32) {
+pub fn default_recv_callback(_data: &mut [u8], _length: i32, _index: i32) {
     println!("default_recv_callback is called!");
 }
 
-pub fn new_recv_callback(_data: *mut u8, _length: i32, _index: i32) {
+pub fn new_recv_callback(_data: &mut [u8], _length: i32, _index: i32) {
     println!("new_recv_callback is called!");
 }
 
@@ -83,9 +83,10 @@ pub extern fn recvCb(buf: *mut c_void, _len: c_int, _index: c_int) -> buf_s {
         contents = mem::transmute(buf);
         length = _len as i32;
         index = _index as i32;
-
+        let slice: &mut [u8] = std::slice::from_raw_parts_mut(contents, length as usize);
+        
         // Send data to the recv callback:
-        CB(contents, length, index);
+        CB(slice, length, index);
         let out: buf_s = mem::uninitialized();
         out
     }
