@@ -6,6 +6,8 @@ authors = ["Matias Insaurralde <matias@insaurral.de>"]
 [dependencies]
 libc = "0.2"
 lazy_static = "1.0"
+crossbeam = "0.3.2"
+crossbeam-channel = "0.2.0"
 
 [build-dependencies]
 cc = "1"
