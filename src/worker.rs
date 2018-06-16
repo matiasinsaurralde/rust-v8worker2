@@ -11,18 +11,27 @@ struct WorkerPtr(NonNull<binding::worker>);
 unsafe impl marker::Send for WorkerPtr {}
 
 // Worker structure to wrap FFI calls, etc.
-pub struct Worker{
+#[repr(C)]
+pub struct Worker {
   ptr: WorkerPtr
 }
 
 impl Worker {
-  pub fn new(_id: i32) -> Worker {
+  pub fn new() -> Worker {
+    // Initialize a V8 worker:
     let mut _ptr: *mut binding::worker;
-    _ptr = unsafe { binding::worker_new(_id) };
+    _ptr = unsafe { binding::worker_new() };
+
+    // Wrap and store the worker pointer:
     let wrapper = WorkerPtr(NonNull::new(_ptr).unwrap());
-    Worker{
-      ptr: wrapper
-    }
+    let w = Worker{
+      ptr: wrapper,
+    };
+
+    // Also set a pointer to our Rust object:
+    let mut boxed_worker = Box::new(w);
+    unsafe { worker_set_rust_object(_ptr, &mut *boxed_worker)};
+    *boxed_worker
   }
 
   pub fn load(&mut self, script_name: String, code: String) {
@@ -66,5 +75,9 @@ impl Worker {
     unsafe {
       self.ptr.0.as_mut()
     }
+  }
+
+  pub fn recv(&mut self, _data: &[u8]) {
+    // TODO: use a closure?
   }
 }

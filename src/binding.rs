@@ -15,6 +15,7 @@ extern {
     //                        argv: *mut *mut c_char);
     pub fn v8_init();
     pub fn worker_new() -> *mut worker;
+    pub fn worker_set_rust_object(w: *mut binding::worker, p: *mut Worker);
     // pub fn worker_set_rust_object(w: *mut worker, p: *mut Worker<T>);
     pub fn worker_load(w: *mut worker, name_s: *const c_char,
                        source_s: *const c_char) -> c_int;
