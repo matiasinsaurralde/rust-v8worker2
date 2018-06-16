@@ -39,7 +39,7 @@ void worker_set_flags(int* argc, char** argv);
 
 void v8_init();
 
-worker* worker_new(int table_index);
+worker* worker_new();
 
 // returns nonzero on error
 // get error from worker_last_exception
@@ -52,7 +52,9 @@ int worker_send_bytes(worker* w, void* data, size_t len);
 void worker_dispose(worker* w);
 void worker_terminate_execution(worker* w);
 
-buf_s recvCb(void*, int, int);
+void worker_set_rust_object(worker* w, void* rust_object);
+
+buf_s recv(void*, int, void*);
 
 #ifdef __cplusplus
 }  // extern "C"

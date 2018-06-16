@@ -32,7 +32,7 @@ IN THE SOFTWARE.
 using namespace v8;
 
 struct worker_s {
-  int table_index;
+  void* rust_object;
   Isolate* isolate;
   std::string last_exception;
   Persistent<Function> recv;
@@ -250,10 +250,8 @@ void Send(const FunctionCallbackInfo<Value>& args) {
 
   void* buf = contents.Data();
   int buflen = static_cast<int>(contents.ByteLength());
-  
-  
-  auto retbuf = recvCb(buf, buflen, w->table_index);
-  
+
+  auto retbuf = recv(buf, buflen, w->rust_object);
   if (retbuf.data) {
     auto ab = ArrayBuffer::New(w->isolate, retbuf.data, retbuf.len,
                                ArrayBufferCreationMode::kInternalized);
@@ -300,7 +298,7 @@ void v8_init() {
   V8::Initialize();
 }
 
-worker* worker_new(int table_index) {
+worker* worker_new() {
   worker* w = new (worker);
 
   Isolate::CreateParams create_params;
@@ -320,7 +318,6 @@ worker* worker_new(int table_index) {
   // w->isolate->SetFatalErrorHandler(FatalErrorCallback2);
   w->isolate->SetPromiseRejectCallback(ExitOnPromiseRejectCallback);
   w->isolate->SetData(0, w);
-  w->table_index = table_index;
 
   Local<ObjectTemplate> global = ObjectTemplate::New(w->isolate);
   Local<ObjectTemplate> v8worker2 = ObjectTemplate::New(w->isolate);
@@ -349,4 +346,7 @@ void worker_dispose(worker* w) {
 }
 
 void worker_terminate_execution(worker* w) { w->isolate->TerminateExecution(); }
+void worker_set_rust_object(worker* w, void* rust_object) {
+  w->rust_object = rust_object;
+}
 }
