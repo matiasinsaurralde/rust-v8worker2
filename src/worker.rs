@@ -48,11 +48,9 @@ impl Worker {
     }
   }
 
-  pub fn send_bytes(&mut self, data: &[u8]) {
-    let c_data = CString::new(data).unwrap();
-    let len = data.len() as size_t;
+  pub fn send_bytes(&mut self, data: Bytes) {
     unsafe {
-      binding::worker_send_bytes(self.as_ptr(), c_data.as_ptr() as *mut c_void, len);
+      binding::worker_send_bytes(self.as_ptr(), data.as_ptr() as *mut c_void, data.len());
     };
   }
 
