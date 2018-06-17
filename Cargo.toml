@@ -8,6 +8,7 @@ libc = "0.2"
 lazy_static = "1.0"
 crossbeam = "0.3.2"
 crossbeam-channel = "0.2.0"
+bytes = "0.4"
 
 [build-dependencies]
 cc = "1"
