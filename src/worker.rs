@@ -1,5 +1,4 @@
 use std::ffi::{CString, CStr};
-use libc::size_t;
 use std::os::raw::c_void;
 use std::str::Utf8Error;
 use std::ptr::NonNull;
@@ -16,22 +15,20 @@ unsafe impl marker::Send for WorkerPtr {}
 #[repr(C)]
 pub struct Worker {
   ptr: WorkerPtr,
-  cb: Box<Fn(Bytes) -> Bytes>,
+  cb: fn(Bytes) -> Bytes,
 }
 
 impl Worker {
-  pub fn new<F: 'static>(func: F) -> Worker where F: Fn(Bytes) -> Bytes {
+  pub fn new(cb: fn(Bytes) -> Bytes) -> Worker {
     // Initialize a V8 worker:
     let mut _ptr: *mut binding::worker;
     _ptr = unsafe { binding::worker_new() };
-
-    let boxed_cb: Box<Fn(Bytes) -> Bytes + 'static> = Box::new(func);
 
     // Wrap and store the worker pointer:
     let wrapper = WorkerPtr(NonNull::new(_ptr).unwrap());
     let w = Worker{
       ptr: wrapper,
-      cb: boxed_cb,
+      cb: cb,
     };
 
     // Also set a pointer to our Rust object:
@@ -82,7 +79,6 @@ impl Worker {
   }
 
   pub fn recv(&mut self, _data: Bytes) -> Bytes {
-    let cb = self.cb.as_mut();
-    cb(_data)
+    (self.cb)(_data)
   }
 }
