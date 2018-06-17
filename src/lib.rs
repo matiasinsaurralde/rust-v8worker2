@@ -51,7 +51,6 @@ pub extern fn recv(_buf: *mut c_void, _len: c_int, w: *mut Worker) -> binding::b
     };
     let out: binding::buf_s;
     out = binding::buf_s{
-        // data: _buf,
         data: data.as_ptr() as *mut c_void,
         len: data.len(),
     };
