@@ -1,93 +1,59 @@
-pub mod v8worker;
+extern crate crossbeam;
+extern crate crossbeam_channel; 
+#[macro_use]
+extern crate lazy_static;
+extern crate bytes;
+
+pub mod worker;
+mod handler;
+mod binding;
+
+use worker::Worker;
 
 extern crate libc;
 
-use libc::size_t;
 use std::mem;
-use std::os::raw::{c_char, c_void, c_int};
+use std::os::raw::{c_void, c_int};
+use bytes::Bytes;
 
-#[repr(C)]
-pub struct worker {
-    _unused: [u8; 0],
+#[derive(Debug)]
+pub struct ChannelData {
 }
-#[repr(C)]
-#[derive(Debug, Copy)]
-pub struct buf_s {
-    pub data: *mut ::std::os::raw::c_void,
-    pub len: size_t,
-}
+// unsafe impl Send for ChannelData {};
 
-impl Clone for buf_s {
-    fn clone(&self) -> Self { *self }
-}
-
-type RecvCallbackFn = fn(&mut [u8], i32, i32);
-
-pub fn default_recv_callback(_data: &mut [u8], _length: i32, _index: i32) {
-    println!("default_recv_callback is called!");
-}
-
-pub fn new_recv_callback(_data: &mut [u8], _length: i32, _index: i32) {
-    println!("new_recv_callback is called!");
-}
-
-pub static mut CB: RecvCallbackFn = default_recv_callback;
-
-#[link(name = "binding")]
-extern {
-    pub fn worker_version() -> *const c_char;
-    pub fn worker_set_flags(argc: *mut c_int,
-                            argv: *mut *mut c_char);
-    pub fn v8_init();
-    pub fn worker_new(table_index: c_int) -> *mut worker;
-    pub fn worker_load(w: *mut worker, name_s: *const c_char,
-                       source_s: *const c_char)
-     -> c_int;
-    pub fn worker_send_bytes(w: *mut worker,
-                             data: *mut c_void,
-                             len: size_t)
-     -> c_int;
-    pub fn worker_dispose(w: *mut worker);
-    pub fn worker_terminate_execution(w: *mut worker);
-
-    pub fn worker_last_exception(w: *mut worker)
-     -> *const c_char;
+pub fn new_handler() -> handler::Handler {
+    let h = handler::new();
+    h
 }
 
 #[test]
 fn test_wrapper() {
-    unsafe { v8_init() };
-
-    unsafe {
-        CB = new_recv_callback
+    let mut _h = new_handler();
+    _h.init();
+    let _recv_cb = move |data: Bytes| {
+        data
     };
-
-    let mut test_worker = v8worker::new();
-    let code = String::from("V8Worker2.print(\"ready\");");
-    let script_name = String::from("code.js");
-    test_worker.load(script_name, code);
-
-    let code2 = String::from("V8Worker2.send(new ArrayBuffer(10))");
-    let script_name2 = String::from("code2.js");
-    test_worker.load(script_name2, code2);
-    // test_worker.last_exception();
+    let mut worker = Worker::new(_recv_cb);
+    worker.load("code.js".to_string(), "V8Worker2.send(new ArrayBuffer(10))".to_string());
 }
 
-
 #[no_mangle]
-pub extern fn recvCb(buf: *mut c_void, _len: c_int, _index: c_int) -> buf_s {
-    let contents: *mut u8;
-    let length: i32;
-    let index: i32;
-    unsafe{
-        contents = mem::transmute(buf);
-        length = _len as i32;
-        index = _index as i32;
-        let slice: &mut [u8] = std::slice::from_raw_parts_mut(contents, length as usize);
-        
-        // Send data to the recv callback:
-        CB(slice, length, index);
-        let out: buf_s = mem::uninitialized();
-        out
-    }
+pub extern fn recv(_buf: *mut c_void, _len: c_int, w: *mut Worker) -> binding::buf_s {
+    // let _sender = handler::CHANNELS.0.clone();
+    // sender.send(ch_data);
+    let _contents: *mut u8;
+    let data: Bytes;
+    unsafe {
+        _contents = mem::transmute(_buf);
+        let slice: &[u8] = std::slice::from_raw_parts(_contents, _len as usize);
+        let slice_bytes = Bytes::from(slice);
+        data = (*w).recv(slice_bytes);
+    };
+    let out: binding::buf_s;
+    out = binding::buf_s{
+        // data: _buf,
+        data: data.as_ptr() as *mut c_void,
+        len: data.len(),
+    };
+    out
 }

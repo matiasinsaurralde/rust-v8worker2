@@ -4,6 +4,8 @@ use std::os::raw::c_void;
 use std::str::Utf8Error;
 use std::ptr::NonNull;
 use std::marker;
+use bytes::Bytes;
+
 use binding;
 
 // Wrapper for the V8 worker pointer, allows sending it over threads
@@ -13,24 +15,28 @@ unsafe impl marker::Send for WorkerPtr {}
 // Worker structure to wrap FFI calls, etc.
 #[repr(C)]
 pub struct Worker {
-  ptr: WorkerPtr
+  ptr: WorkerPtr,
+  cb: Box<Fn(Bytes) -> Bytes>,
 }
 
 impl Worker {
-  pub fn new() -> Worker {
+  pub fn new<F: 'static>(func: F) -> Worker where F: Fn(Bytes) -> Bytes {
     // Initialize a V8 worker:
     let mut _ptr: *mut binding::worker;
     _ptr = unsafe { binding::worker_new() };
+
+    let boxed_cb: Box<Fn(Bytes) -> Bytes + 'static> = Box::new(func);
 
     // Wrap and store the worker pointer:
     let wrapper = WorkerPtr(NonNull::new(_ptr).unwrap());
     let w = Worker{
       ptr: wrapper,
+      cb: boxed_cb,
     };
 
     // Also set a pointer to our Rust object:
     let mut boxed_worker = Box::new(w);
-    unsafe { worker_set_rust_object(_ptr, &mut *boxed_worker)};
+    unsafe { binding::worker_set_rust_object(_ptr, boxed_worker.as_mut())};
     *boxed_worker
   }
 
@@ -77,7 +83,8 @@ impl Worker {
     }
   }
 
-  pub fn recv(&mut self, _data: &[u8]) {
-    // TODO: use a closure?
+  pub fn recv(&mut self, _data: Bytes) -> Bytes {
+    let cb = self.cb.as_mut();
+    cb(_data)
   }
 }
