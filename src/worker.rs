@@ -32,9 +32,9 @@ impl Worker {
     };
 
     // Also set a pointer to our Rust object:
-    let mut boxed_worker = Box::new(w);
-    unsafe { binding::worker_set_rust_object(_ptr, boxed_worker.as_mut())};
-    *boxed_worker
+    let boxed_cb = Box::new(cb);
+    unsafe {binding::worker_set_rust_object(_ptr, Box::into_raw(boxed_cb))};
+    w
   }
 
   pub fn load(&mut self, script_name: String, code: String) {
@@ -76,9 +76,5 @@ impl Worker {
     unsafe {
       self.ptr.0.as_mut()
     }
-  }
-
-  pub fn recv(&mut self, _data: Bytes) -> Bytes {
-    (self.cb)(_data)
   }
 }
