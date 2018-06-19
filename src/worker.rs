@@ -33,7 +33,7 @@ impl Worker {
 
     // Also set a pointer to our Rust object:
     let boxed_cb = Box::new(cb);
-    unsafe {binding::worker_set_rust_object(_ptr, Box::into_raw(boxed_cb))};
+    unsafe {binding::worker_set_rust_callback(_ptr, Box::into_raw(boxed_cb))};
     w
   }
 

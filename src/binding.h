@@ -52,7 +52,8 @@ int worker_send_bytes(worker* w, void* data, size_t len);
 void worker_dispose(worker* w);
 void worker_terminate_execution(worker* w);
 
-void worker_set_rust_object(worker* w, void* rust_object);
+void worker_set_rust_callback(worker*, void*);
+void worker_set_rust_object(worker*, void*);
 
 buf_s recv(void*, int, void*);
 

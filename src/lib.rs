@@ -1,7 +1,3 @@
-extern crate crossbeam;
-extern crate crossbeam_channel; 
-#[macro_use]
-extern crate lazy_static;
 extern crate bytes;
 
 pub mod worker;
@@ -13,11 +9,6 @@ extern crate libc;
 use std::mem;
 use std::os::raw::{c_void, c_int};
 use bytes::Bytes;
-
-#[derive(Debug)]
-pub struct ChannelData {
-}
-// unsafe impl Send for ChannelData {};
 
 pub fn new_handler() -> handler::Handler {
     let h = handler::new();
@@ -37,21 +28,18 @@ fn test_wrapper() {
 
 #[no_mangle]
 pub extern fn recv(_buf: *mut c_void, _len: c_int, raw_cb: *mut fn(Bytes) -> Bytes) -> binding::buf_s {
-    println!("recv is called");
-    // let _sender = handler::CHANNELS.0.clone();
-    // sender.send(ch_data);
     let _contents: *mut u8;
-    let data: Bytes;
+    let out: binding::buf_s;
     unsafe {
         _contents = mem::transmute(_buf);
         let slice: &[u8] = std::slice::from_raw_parts(_contents, _len as usize);
         let slice_bytes = Bytes::from(slice);
-        data = (*raw_cb)(slice_bytes);
-    };
-    let out: binding::buf_s;
-    out = binding::buf_s{
-        data: data.as_ptr() as *mut c_void,
-        len: data.len(),
-    };
-    out
+        let data = (*raw_cb)(slice_bytes);
+        let data_len = data.len() as usize;
+        out = binding::buf_s{
+            data: data.as_ptr() as *mut c_void,
+            len: data_len,
+        };
+        out
+    }
 }

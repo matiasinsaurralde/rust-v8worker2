@@ -32,6 +32,7 @@ IN THE SOFTWARE.
 using namespace v8;
 
 struct worker_s {
+  void* rust_callback;
   void* rust_object;
   Isolate* isolate;
   std::string last_exception;
@@ -251,10 +252,13 @@ void Send(const FunctionCallbackInfo<Value>& args) {
   void* buf = contents.Data();
   int buflen = static_cast<int>(contents.ByteLength());
 
-  auto retbuf = recv(buf, buflen, w->rust_object);
+  auto retbuf = recv(buf, buflen, w->rust_callback);
   if (retbuf.data) {
-    auto ab = ArrayBuffer::New(w->isolate, retbuf.data, retbuf.len,
-                               ArrayBufferCreationMode::kInternalized);
+    auto ab = ArrayBuffer::New(w->isolate, retbuf.len);
+    auto contents = ab->GetContents();
+    memcpy(contents.Data(), retbuf.data, retbuf.len);
+    // TODO: investigate what's going on with the Rust FFI pointer
+    // free(retbuf.data);
     args.GetReturnValue().Set(handle_scope.Escape(ab));
   }
 }
@@ -281,7 +285,7 @@ int worker_send_bytes(worker* w, void* data, size_t len) {
                              ArrayBufferCreationMode::kInternalized);
   assert(!args[0].IsEmpty());
   assert(!try_catch.HasCaught());
-
+  
   recv->Call(context->Global(), 1, args);
 
   if (try_catch.HasCaught()) {
@@ -346,6 +350,9 @@ void worker_dispose(worker* w) {
 }
 
 void worker_terminate_execution(worker* w) { w->isolate->TerminateExecution(); }
+void worker_set_rust_callback(worker* w, void* rust_callback) {
+  w->rust_callback = rust_callback;
+}
 void worker_set_rust_object(worker* w, void* rust_object) {
   w->rust_object = rust_object;
 }
