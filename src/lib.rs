@@ -27,19 +27,20 @@ fn test_wrapper() {
 }
 
 #[no_mangle]
-pub extern fn recv(_buf: *mut c_void, _len: c_int, raw_cb: *mut fn(Bytes) -> Bytes) -> binding::buf_s {
+pub extern fn recv(_buf: *mut c_void, _len: c_int, raw_cb: *mut fn(Bytes) -> Box<Bytes>) -> *mut binding::buf_s {
     let _contents: *mut u8;
-    let out: binding::buf_s;
     unsafe {
         _contents = mem::transmute(_buf);
         let slice: &[u8] = std::slice::from_raw_parts(_contents, _len as usize);
         let slice_bytes = Bytes::from(slice);
         let data = (*raw_cb)(slice_bytes);
         let data_len = data.len() as usize;
-        out = binding::buf_s{
+
+        let boxed_buf_s = Box::new(binding::buf_s{
             data: data.as_ptr() as *mut c_void,
             len: data_len,
-        };
-        out
+        });
+        // TODO: develop a mechanism to free the box contents:
+        Box::into_raw(boxed_buf_s)
     }
 }

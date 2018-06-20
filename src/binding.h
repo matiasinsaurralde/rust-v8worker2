@@ -55,7 +55,7 @@ void worker_terminate_execution(worker* w);
 void worker_set_rust_callback(worker*, void*);
 void worker_set_rust_object(worker*, void*);
 
-buf_s recv(void*, int, void*);
+buf_s* recv(void*, int, void*);
 
 #ifdef __cplusplus
 }  // extern "C"

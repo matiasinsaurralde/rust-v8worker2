@@ -15,11 +15,11 @@ unsafe impl marker::Send for WorkerPtr {}
 #[repr(C)]
 pub struct Worker {
   ptr: WorkerPtr,
-  cb: fn(Bytes) -> Bytes,
+  cb: fn(Bytes) -> Box<Bytes>,
 }
 
 impl Worker {
-  pub fn new(cb: fn(Bytes) -> Bytes) -> Worker {
+  pub fn new(cb: fn(Bytes) -> Box<Bytes>) -> Worker {
     // Initialize a V8 worker:
     let mut _ptr: *mut binding::worker;
     _ptr = unsafe { binding::worker_new() };

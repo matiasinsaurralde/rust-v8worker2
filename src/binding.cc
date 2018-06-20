@@ -253,10 +253,10 @@ void Send(const FunctionCallbackInfo<Value>& args) {
   int buflen = static_cast<int>(contents.ByteLength());
 
   auto retbuf = recv(buf, buflen, w->rust_callback);
-  if (retbuf.data) {
-    auto ab = ArrayBuffer::New(w->isolate, retbuf.len);
+  if (retbuf->data != NULL) {
+    auto ab = ArrayBuffer::New(w->isolate, retbuf->len);
     auto contents = ab->GetContents();
-    memcpy(contents.Data(), retbuf.data, retbuf.len);
+    memcpy(contents.Data(), retbuf->data, retbuf->len);
     // TODO: investigate what's going on with the Rust FFI pointer
     // free(retbuf.data);
     args.GetReturnValue().Set(handle_scope.Escape(ab));
