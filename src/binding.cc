@@ -252,7 +252,7 @@ void Send(const FunctionCallbackInfo<Value>& args) {
   void* buf = contents.Data();
   int buflen = static_cast<int>(contents.ByteLength());
 
-  auto retbuf = recv(buf, buflen, w->rust_callback);
+  buf_s* retbuf = recv(buf, buflen, w->rust_callback);
   if (retbuf->data != NULL) {
     auto ab = ArrayBuffer::New(w->isolate, retbuf->len);
     auto contents = ab->GetContents();
