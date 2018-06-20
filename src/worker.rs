@@ -37,7 +37,7 @@ impl Worker {
     w
   }
 
-  pub fn load(&mut self, script_name: String, code: String) {
+  pub fn load(&mut self, script_name: &str, code: String) {
     let c_script_name = CString::new(script_name).unwrap();
     let c_code = CString::new(code).unwrap();
     unsafe {
