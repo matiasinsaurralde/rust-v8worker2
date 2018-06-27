@@ -2,12 +2,13 @@ language: c++
 before_cache:
   - ccache -s
 cache: ccache
-before_install: |
-  sudo apt-get -qq update
-  curl https://sh.rustup.rs -sSf > rustup.sh
-  chmod +x rustup.sh
-  ./rustup.sh -y
+before_install:
+  - sudo apt-get -qq update
+  - curl https://sh.rustup.rs -sSf > rustup.sh
+  - chmod +x rustup.sh
+  - ./rustup.sh -y
 install:
   - ./build.py --use_ccache
 script:
+  - source ~/.cargo/env
   - cargo test
