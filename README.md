@@ -1,5 +1,7 @@
 ## rust-v8worker2
 
+[![Build Status](https://travis-ci.org/matiasinsaurralde/rust-v8worker2.svg?branch=master)](https://travis-ci.org/matiasinsaurralde/rust-v8worker2)
+
 This is a minimal binding between Rust (and V8 JavaScript. Basic concept is to only expose two methods to JavaScript: send and receive.
 
 Based on [ry/v8worker2](https://github.com/ry/v8worker2).
