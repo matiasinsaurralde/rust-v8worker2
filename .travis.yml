@@ -9,6 +9,6 @@ before_install:
   - ./rustup.sh -y
   - source ~/.cargo/env
 install:
-  - cargo build
+  - cargo build -vv
 script:
-  - cargo test
+  - cargo test -- --nocapture

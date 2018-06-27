@@ -4,21 +4,26 @@ extern crate pkg_config;
 use std::process::Command;
 
 fn main() {
-    // V8 build step:
-    let status = Command::new("python")
-        .args(&["build.py", "--use_ccache"])
-        .status()
-        .expect("failed to build V8");
+    let pkg_config_file = "v8.pc".to_string();
 
-    if !status.success() {
-      panic!("Couldn't build V8");
+    let mut lib = pkg_config::probe_library(&pkg_config_file);
+    if lib.is_err() {
+        // V8 build step:
+        let status = Command::new("python")
+            .args(&["build.py", "--use_ccache"])
+            .status()
+            .expect("failed to build V8");
+
+        if !status.success() {
+            panic!("Couldn't build V8");
+        }
     }
     println!("Successful V8 build, probe v8.pc");
 
     // V8 library lookup:
-    let lib = pkg_config::probe_library("v8.pc");
+    lib = pkg_config::probe_library(&pkg_config_file);
     if lib.is_err() {
-        panic!("Couldn't find V8 via pkg-config");
+        panic!("Couldn't find v8.pc via pkg-config");
     }
     println!("v8.pc found");
     let v8 = lib.unwrap();
