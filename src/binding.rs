@@ -12,14 +12,11 @@ pub struct worker {
     _unused: [u8; 0],
 }
 
-use worker::Worker as wrk;
-
 #[link(name = "binding")]
 extern {
     pub fn v8_init();
     pub fn worker_new() -> *mut worker;
     pub fn worker_set_rust_callback(w: *mut worker, p: *mut fn(Bytes) -> Box<Bytes>);
-    pub fn worker_set_rust_object(w: *mut worker, p: *mut wrk);
     pub fn worker_load(w: *mut worker, name_s: *const c_char,
                        source_s: *const c_char) -> c_int;
     pub fn worker_send_bytes(w: *mut worker,
