@@ -7,8 +7,8 @@ before_install:
   - curl https://sh.rustup.rs -sSf > rustup.sh
   - chmod +x rustup.sh
   - ./rustup.sh -y
-install:
-  - ./build.py --use_ccache
-script:
   - source ~/.cargo/env
+install:
+  - cargo build
+script:
   - cargo test
