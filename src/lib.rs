@@ -19,11 +19,14 @@ pub fn new_handler() -> handler::Handler {
 fn test_wrapper() {
     let mut _h = new_handler();
     _h.init();
-    let _recv_cb = move |data: Bytes| {
-        data
+    let cb = |incoming_data: bytes::Bytes| -> Box<bytes::Bytes> {
+        println!("Getting data from V8, length is {}", incoming_data.len());
+        assert!(incoming_data.len() == 10);
+        let data = Bytes::from(&b"reply"[..]);
+        Box::new(data)
     };
-    let mut worker = worker::Worker::new(_recv_cb);
-    worker.load("code.js".to_string(), "V8Worker2.send(new ArrayBuffer(10))".to_string());
+    let mut worker = worker::Worker::new(cb);
+    worker.load("code.js", "V8Worker2.send(new ArrayBuffer(10))".to_string());
 }
 
 #[no_mangle]
