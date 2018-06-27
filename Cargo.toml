@@ -1,7 +1,14 @@
 [package]
 name = "v8worker2"
 version = "0.1.0"
-authors = ["Matias Insaurralde <matias@insaurral.de>"]
+authors = ["Matias Insaurralde <matias@insaurral.de>", "Ryan Dahl <ry@tinyclouds.org>"]
+description = "Minimal Rust binding to V8, based on ry/v8worker2"
+repository = "https://github.com/matiasinsaurralde/rust-v8worker2"
+readme = "README.md"
+license = "MIT"
+build = "build.rs"
+categories = ["api-bindings"]
+
 
 [dependencies]
 libc = "0.2"
