@@ -4,7 +4,9 @@ before_cache:
 cache: ccache
 before_install: |
   sudo apt-get -qq update
-  sudo apt-get install -y rustc cargo
+  curl https://sh.rustup.rs -sSf > rustup.sh
+  chmod +x rustup.sh
+  ./rustup.sh -y
 install:
   - ./build.py --use_ccache
 script:
