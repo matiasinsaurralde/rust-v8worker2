@@ -68,7 +68,7 @@ To run the tests, use `cargo test -- --nocapture`.
 
 ## Supported platforms
 
-My development box runs OS X, the CI environment runs Linux. These two platforms should me ok.
+My development box runs OS X, the CI environment runs Linux. These two platforms should be ok.
 
 ## License
 
